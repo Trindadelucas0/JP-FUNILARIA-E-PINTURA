@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JP Funilaria - Premium System v5.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --primary: #38bdf8; --danger: #ef4444; --text: #f1f5f9; --input-bg: #334155; --success: #10b981; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; background: var(--card); padding: 30px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); }
+        
+        .header { display: flex; justify-content: space-between; border-bottom: 1px solid #334155; margin-bottom: 30px; padding-bottom: 15px; }
+        .section-title { color: var(--primary); font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 25px 0 15px 0; display: flex; align-items: center; gap: 10px; letter-spacing: 1px; }
+        .section-title::after { content: ""; height: 1px; background: #334155; flex: 1; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .field { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+        
+        input, textarea, select { background: var(--input-bg); border: 1px solid #475569; padding: 10px; border-radius: 8px; color: white; font-size: 13px; outline: none; transition: 0.2s; }
+        input:focus { border-color: var(--primary); background: #3d4d63; }
+
+        .item-row { display: grid; grid-template-columns: 3fr 1.5fr 0.8fr 1.2fr 45px; gap: 10px; margin-bottom: 10px; align-items: end; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; }
+        .btn-remove { background: var(--danger); color: white; border: none; height: 40px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-add { background: transparent; border: 2px dashed var(--primary); color: var(--primary); padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; margin: 10px 0; font-weight: bold; }
+        
+        .option-group { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+        .btn-opt { background: #475569; border: none; color: white; padding: 5px 10px; border-radius: 6px; font-size: 10px; cursor: pointer; }
+        .btn-opt:hover { background: var(--primary); }
+
+        .total-dashboard { background: linear-gradient(135deg, #0ea5e9, #6366f1); padding: 25px; border-radius: 16px; margin-top: 30px; text-align: right; }
+        .total-value { font-size: 38px; font-weight: 900; display: block; }
+
+        .btn-generate { background: var(--success); color: white; border: none; padding: 20px; border-radius: 14px; width: 100%; font-size: 18px; font-weight: 900; cursor: pointer; margin-top: 25px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1 style="margin:0; color: var(--primary); font-weight: 900;">JP FUNILARIA E PINTURA</h1>
+            <p style="margin:5px 0; font-size: 12px; color: #94a3b8;">CNPJ: 36.235.449/0001-14 | PREMIUM AUTO REPAIR</p>
+        </div>
+        <div class="field">
+            <label>Orçamento Nº</label>
+            <input type="number" id="numOrc" value="2024001" style="width: 130px; text-align: center; font-weight: bold;">
+        </div>
+    </div>
+
+    <div class="section-title">Informações do Cliente</div>
+    <div class="grid">
+        <div class="field" style="grid-column: span 2;"><label>Nome Completo *</label><input type="text" id="nome"></div>
+        <div class="field"><label>CPF / CNPJ</label><input type="text" id="documento"></div>
+        <div class="field"><label>WhatsApp</label><input type="text" id="tel"></div>
+        <div class="field" style="grid-column: span 2;"><label>Endereço</label><input type="text" id="endereco"></div>
+        <div class="field"><label>Cidade/UF</label><input type="text" id="cidade"></div>
+        <div class="field"><label>E-mail</label><input type="email" id="email"></div>
+    </div>
+
+    <div class="section-title">Ficha do Veículo</div>
+    <div class="grid">
+        <div class="field"><label>Marca/Modelo *</label><input type="text" id="veiculo"></div>
+        <div class="field"><label>Placa *</label><input type="text" id="placa" style="text-transform: uppercase"></div>
+        <div class="field"><label>Cor</label><input type="text" id="cor"></div>
+        <div class="field"><label>Ano</label><input type="text" id="ano"></div>
+        <div class="field"><label>KM</label><input type="number" id="km"></div>
+        <div class="field"><label>Combustível</label>
+            <select id="combustivel">
+                <option value="Flex">Flex</option>
+                <option value="Gasolina">Gasolina</option>
+                <option value="Etanol">Etanol</option>
+                <option value="Diesel">Diesel</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="section-title">Itens e Serviços</div>
+    <div id="itens-container"></div>
+    <button class="btn-add" onclick="App.addLinha()">+ ADICIONAR ITEM</button>
+
+    <div class="section-title">Fechamento</div>
+    <div class="grid" style="grid-template-columns: 1.5fr 1fr;">
+        <div class="field">
+            <label>Pagamento</label>
+            <input type="text" id="pagamento" placeholder="Escolha a opção">
+            <div class="option-group">
+                <button class="btn-opt" onclick="App.setPag('À Vista (Pix/Dinheiro)')">À Vista</button>
+                <button class="btn-opt" onclick="App.setPag('Cartão de Crédito 3x s/ juros')">3x Sem Juros</button>
+                <button class="btn-opt" onclick="App.setPag('Cartão 10x c/ taxa operadora')">10x c/ Taxa</button>
+            </div>
+        </div>
+        <div class="field">
+            <label>Prazo</label>
+            <input type="text" id="prazo" placeholder="Selecione">
+            <div class="option-group">
+                <button class="btn-opt" onclick="App.setPrazo('3 dias úteis')">3 dias</button>
+                <button class="btn-opt" onclick="App.setPrazo('7 dias úteis')">7 dias</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="field" style="margin-top: 20px;">
+        <label>Notas Finais</label>
+        <textarea id="obs" rows="2">Garantia de 06 meses nos serviços de pintura. Peças conforme garantia do fabricante.</textarea>
+    </div>
+
+    <div class="total-dashboard">
+        <span class="total-label">Total do Orçamento</span>
+        <span class="total-value" id="visor-total">R$ 0,00</span>
+    </div>
+
+    <button class="btn-generate" id="btnGerar" onclick="App.gerarPDF()">GERAR PDF PREMIUM</button>
+</div>
+
+<script>
+const App = {
+    total: 0,
+    init() {
+        this.addLinha();
+        document.getElementById('itens-container').addEventListener('input', () => this.calc());
+    },
+    setPag(v) { document.getElementById('pagamento').value = v; },
+    setPrazo(v) { document.getElementById('prazo').value = v; },
+    addLinha() {
+        const div = document.createElement('div');
+        div.className = 'item-row';
+        div.innerHTML = `
+            <div class="field"><label>Descrição</label><input type="text" class="desc"></div>
+            <div class="field"><label>Tipo</label><select class="tipo"><option value="Serviço">Mão de Obra</option><option value="Peça">Peça</option></select></div>
+            <div class="field"><label>Qtd</label><input type="number" class="qtd" value="1"></div>
+            <div class="field"><label>Unitário R$</label><input type="number" class="valor" step="0.01"></div>
+            <button class="btn-remove" onclick="this.parentElement.remove(); App.calc();">✕</button>
+        `;
+        document.getElementById('itens-container').appendChild(div);
+    },
+    calc() {
+        let t = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const q = parseFloat(row.querySelector('.qtd').value) || 0;
+            const v = parseFloat(row.querySelector('.valor').value) || 0;
+            t += (q * v);
+        });
+        this.total = t;
+        document.getElementById('visor-total').innerText = t.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        document.getElementById('btnGerar').disabled = (t <= 0);
+    },
+
+    async gerarPDF() {
+        const v = (id) => document.getElementById(id).value;
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // --- DESIGN DO PDF PREMIUM ---
+        
+        // 1. Faixa lateral decorativa (Sutil)
+        doc.setFillColor(56, 189, 248);
+        doc.rect(0, 0, 5, 297, 'F');
+
+        // 2. Cabeçalho Moderno
+        doc.setFillColor(248, 250, 252); // Fundo cinza quase branco
+        doc.rect(5, 0, 205, 50, 'F');
+        
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(24);
+        doc.setFont("helvetica", "bold");
+        doc.text("JP", 20, 25);
+        doc.setTextColor(56, 189, 248);
+        doc.text("FUNILARIA", 35, 25);
+        
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        doc.setFont("helvetica", "normal");
+        doc.text("CNPJ: 36.235.449/0001-14", 20, 32);
+        doc.text("E-mail: contato@jpfunilaria.com.br", 20, 37);
+
+        doc.setFontSize(14);
+        doc.setTextColor(15, 23, 42);
+        doc.setFont("helvetica", "bold");
+        doc.text(`ORÇAMENTO #${v('numOrc')}`, 150, 25);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Emissão: ${new Date().toLocaleDateString('pt-BR')}`, 150, 32);
+
+        // 3. Blocos de Informação (Elegantes)
+        // Cliente
+        doc.setFillColor(15, 23, 42);
+        doc.rect(20, 55, 80, 7, 'F');
+        doc.setTextColor(255);
+        doc.setFont("helvetica", "bold");
+        doc.text(" DADOS DO CLIENTE", 22, 60);
+
+        doc.setTextColor(40);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold"); doc.text("NOME:", 20, 70); 
+        doc.setFont("helvetica", "normal"); doc.text(v('nome').toUpperCase(), 40, 70);
+        doc.setFont("helvetica", "bold"); doc.text("DOC:", 20, 75); 
+        doc.setFont("helvetica", "normal"); doc.text(v('documento'), 40, 75);
+        doc.setFont("helvetica", "bold"); doc.text("CONTATO:", 20, 80); 
+        doc.setFont("helvetica", "normal"); doc.text(v('tel'), 40, 80);
+        doc.setFont("helvetica", "bold"); doc.text("END:", 20, 85); 
+        doc.setFont("helvetica", "normal"); doc.text(v('endereco'), 40, 85);
+
+        // Veículo
+        doc.setFillColor(15, 23, 42);
+        doc.rect(115, 55, 80, 7, 'F');
+        doc.setTextColor(255);
+        doc.setFont("helvetica", "bold");
+        doc.text(" FICHA DO VEÍCULO", 117, 60);
+
+        doc.setTextColor(40);
+        doc.setFont("helvetica", "bold"); doc.text("MODELO:", 115, 70); 
+        doc.setFont("helvetica", "normal"); doc.text(v('veiculo').toUpperCase(), 135, 70);
+        doc.setFont("helvetica", "bold"); doc.text("PLACA:", 115, 75); 
+        doc.setFont("helvetica", "normal"); doc.text(v('placa').toUpperCase(), 135, 75);
+        doc.setFont("helvetica", "bold"); doc.text("COR/ANO:", 115, 80); 
+        doc.setFont("helvetica", "normal"); doc.text(`${v('cor')} / ${v('ano')}`, 135, 80);
+        doc.setFont("helvetica", "bold"); doc.text("KM/COMB:", 115, 85); 
+        doc.setFont("helvetica", "normal"); doc.text(`${v('km')} / ${v('combustivel')}`, 135, 85);
+
+        // 4. Tabela de Itens (Clean)
+        const rows = [];
+        document.querySelectorAll('.item-row').forEach(row => {
+            const d = row.querySelector('.desc').value;
+            const q = row.querySelector('.qtd').value;
+            const vl = parseFloat(row.querySelector('.valor').value) || 0;
+            if(d && vl > 0) rows.push([d, row.querySelector('.tipo').value, q, `R$ ${vl.toFixed(2)}`, `R$ ${(q*vl).toFixed(2)}`]);
+        });
+
+        doc.autoTable({
+            startY: 95,
+            head: [['DESCRIÇÃO TÉCNICA', 'TIPO', 'QTD', 'UNITÁRIO', 'SUBTOTAL']],
+            body: rows,
+            theme: 'striped',
+            headStyles: { fillColor: [51, 65, 85], textColor: 255, fontStyle: 'bold', halign: 'center' },
+            bodyStyles: { textColor: 50, fontSize: 9 },
+            columnStyles: { 0: { cellWidth: 80 }, 4: { halign: 'right', fontStyle: 'bold' } },
+            margin: { left: 20, right: 15 }
+        });
+
+        // 5. Rodapé e Resumo
+        let finalY = doc.lastAutoTable.finalY + 15;
+        
+        // Caixa de Total (Destaque)
+        doc.setFillColor(241, 245, 249);
+        doc.rect(130, finalY - 5, 65, 20, 'F');
+        doc.setDrawColor(56, 189, 248);
+        doc.line(130, finalY - 5, 130, finalY + 15); // Detalhe azul na lateral do total
+
+        doc.setTextColor(15, 23, 42);
+        doc.setFontSize(10); doc.text("VALOR TOTAL:", 135, finalY + 3);
+        doc.setFontSize(16); doc.setFont("helvetica", "bold");
+        doc.text(`R$ ${this.total.toFixed(2)}`, 135, finalY + 12);
+
+        // Condições
+        doc.setTextColor(60);
+        doc.setFontSize(9); doc.setFont("helvetica", "bold");
+        doc.text("PAGAMENTO:", 20, finalY + 3);
+        doc.setFont("helvetica", "normal"); doc.text(v('pagamento'), 50, finalY + 3);
+        
+        doc.setFont("helvetica", "bold");
+        doc.text("PRAZO:", 20, finalY + 8);
+        doc.setFont("helvetica", "normal"); doc.text(v('prazo'), 50, finalY + 8);
+
+        doc.setFont("helvetica", "bold");
+        doc.text("NOTAS:", 20, finalY + 18);
+        doc.setFont("helvetica", "normal");
+        doc.text(doc.splitTextToSize(v('obs'), 100), 20, finalY + 23);
+
+        // Linhas de Assinatura
+        doc.setDrawColor(200);
+        doc.line(20, 270, 90, 270); doc.text("JP Funilaria e Pintura", 20, 275);
+        doc.line(120, 270, 190, 270); doc.text("Assinatura do Cliente", 120, 275);
+
+        doc.save(`ORCAMENTO_PREMIUM_${v('nome').split(' ')[0]}.pdf`);
+    }
+};
+App.init();
+</script>
+</body>
+</html>
